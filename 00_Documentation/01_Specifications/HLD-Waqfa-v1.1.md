@@ -14,6 +14,8 @@
 | Core subsystem | Dhikr Session & Time-Window Engine (§4) |
 | Data-flow decision | TanStack Start **server functions** for one-shot reads/writes; PocketBase **realtime (SSE)** held directly by the client for live UI (§4.4) |
 | Development topology | Manage-Hub development workspace → GitHub source of truth → dedicated Waqfa LXC runtime (§9) |
+| Data namespace | Every Waqfa-owned PocketBase collection uses the mandatory `waqfa_` prefix; generic collections are prohibited (§5) |
+| Production isolation | Dedicated Waqfa LXC with independent application, PocketBase, data, secrets, networking, logs, and backups (§9) |
 | Architecture decision | ADR-001 — Development and Deployment Topology |
 | BRD synchronization | BRD-Waqfa v1.1 corrects the delegation trace to BR-017 and expands the product baseline with approved cross-device, continuity, travel, accessibility, and authentication requirements. |
 
@@ -35,7 +37,7 @@ Waqfa is a single-page, installable PWA using React 19 and TanStack Start, backe
                 │ HTTPS
 ┌───────────────▼───────────────────────────────┐
 │ PocketBase                                    │
-│ Collections, API rules, auth, realtime, audit │
+│ waqfa_* collections, API rules, auth, audit   │
 └───────────────────────────────────────────────┘
 ```
 
@@ -76,12 +78,14 @@ PocketBase clients used in server-side request handling must be request-scoped a
 
 ### 3.2 Backend components
 
-- **PocketBase Collections** — retained backend model with versioned, approved additions.
-- **Auth** — PocketBase email/password and Google OAuth.
+- **PocketBase Collections** — Waqfa-owned collections use the mandatory `waqfa_` namespace.
+- **Auth** — PocketBase auth collection `waqfa_users`, email/password, and Google OAuth.
 - **API Rules** — enforcement boundary for roles, delegation, privacy, and ownership.
 - **Content-Approval Gate** — approved religious content only.
 - **Realtime Broker** — PocketBase SSE for approved live surfaces.
-- **Audit Log** — server-side, append-oriented privileged action records.
+- **Audit Log** — server-side, append-oriented privileged action records in `waqfa_audit_logs`.
+
+Generic application collections and cross-project collection reuse are prohibited.
 
 ## 4. Dhikr Session, Time-Window & Cross-Device Engine
 
@@ -143,24 +147,43 @@ Location/timezone changes require user confirmation. Completed sections and hist
 
 ## 5. Data Model (high-level)
 
+### 5.1 Mandatory namespace
+
+Every Waqfa-owned PocketBase collection begins with `waqfa_`. The authentication collection is `waqfa_users`. Waqfa must not use generic `users`, `tickets`, `settings`, `audit_log`, or any other unscoped application collection.
+
 | Domain | Collection or model | Purpose |
 |---|---|---|
-| Identity | `users` | Authentication, profile, and personalization |
-| Authorization | `admins` | Role, scoped permissions, and active state |
-| Delegation | `delegation` | Time-boxed permission grants |
-| Active session | `active_sessions` or equivalent versioned fields | Ownership, revision, progress, and stale-write rejection |
-| Dhikr content | `dhikr_library` | Approved content and reviewed optional media |
-| Activity | `user_activity` | Daily activity, continuity, and weekly insights |
-| Self-reflection | `muhasaba` | Owner-only weekly text |
-| Community | `tickets`, `ticket_comments` | Public transparent feedback board |
-| Audit | `audit_log` | Privileged action records |
+| Identity | `waqfa_users` | Authentication, profile, and personalization |
+| Authorization | `waqfa_admins` | Role, scoped permissions, and active state |
+| Delegation | `waqfa_delegations` | Time-boxed permission grants |
+| Active session | `waqfa_active_sessions` | Ownership, revision, progress, and stale-write rejection |
+| Session idempotency | `waqfa_session_mutations` | Mutation deduplication and reconciliation where required |
+| Dhikr content | `waqfa_dhikr_library` | Approved content and reviewed optional media |
+| Activity | `waqfa_user_activity` | Daily activity, continuity, and weekly insights |
+| Self-reflection | `waqfa_muhasaba` | Owner-only weekly text |
+| Intentions | `waqfa_weekly_intentions` | Private weekly intention records |
+| Community | `waqfa_tickets`, `waqfa_ticket_comments` | Public transparent feedback board |
+| Audit | `waqfa_audit_logs` | Privileged action records |
+| Notifications | `waqfa_notification_settings` | Reminder and DND configuration |
+| User commitments | `waqfa_user_wards` | Optional ward commitment state |
+| Prayer configuration | `waqfa_prayer_settings` | Location and calculation preferences |
+| Device sessions | `waqfa_device_sessions` | Device identity and session ownership support |
+| Content assets | `waqfa_content_assets` | Reviewed optional media metadata |
 
 Exact fields, indexes, relationships, migrations, and API rules remain LLD scope and must be verified against the live PocketBase instance.
+
+### 5.2 Cross-project boundary
+
+- Waqfa must not rename, reuse, reference, or modify any `marsid_*` collection.
+- Development may share the Manage-Hub PocketBase process, but not application collections or data ownership.
+- Production uses an entirely independent PocketBase runtime and storage in the Waqfa LXC.
+- The `waqfa_` namespace remains mandatory in every environment.
 
 ## 6. Authentication & Authorization
 
 Locked decisions:
 
+- The auth collection is `waqfa_users`.
 - PocketBase email/password plus Google OAuth.
 - Google-only accounts are valid.
 - Account linking follows a controlled verified flow.
@@ -180,7 +203,7 @@ Locked decisions:
 
 ## 8. Audit & Content Governance
 
-- Every privileged action writes to `audit_log` server-side.
+- Every privileged action writes to `waqfa_audit_logs` server-side.
 - No client-only audit fallback is accepted.
 - Religious content is published only after committee approval.
 - Runtime religious-text API ingestion is prohibited.
@@ -207,9 +230,9 @@ This topology is formally recorded in `ADR-001-Development-and-Deployment-Topolo
 
 | Environment | Responsibility |
 |---|---|
-| Manage-Hub | Development, local validation, development PocketBase, and approved coding tools |
+| Manage-Hub | Development, local validation, shared development PocketBase process with project-scoped `waqfa_*` collections, and approved coding tools |
 | GitHub | Authoritative source, review history, CI/CD, releases, and documentation |
-| Waqfa LXC | Isolated production application, PocketBase, persistent data, logs, health checks, and backups |
+| Waqfa LXC | Fully isolated production application, PocketBase, persistent data, secrets, networks, logs, health checks, and backups |
 | Staging | Optional pre-production validation using separate data and secrets |
 
 ### 9.3 Mandatory boundaries
@@ -220,6 +243,8 @@ This topology is formally recorded in `ADR-001-Development-and-Deployment-Topolo
 - Direct production application edits are prohibited.
 - Production artifacts must map to a commit SHA.
 - Development and production PocketBase data and credentials must be separate.
+- Production must not depend on Manage-Hub `Dev-Backend`, `Network_Dev`, or any Marsid runtime resource.
+- Generic PocketBase collections are prohibited.
 
 ### 9.4 Deployment model
 
@@ -228,6 +253,7 @@ This topology is formally recorded in `ADR-001-Development-and-Deployment-Topolo
 - The previous image remains available for rollback.
 - Database changes use versioned migrations and require a verified backup.
 - Secrets are injected at runtime and never committed.
+- Production runs its own dedicated PocketBase container and storage.
 
 ### 9.5 Domain split
 
@@ -244,6 +270,7 @@ This topology is formally recorded in `ADR-001-Development-and-Deployment-Topolo
 | Performance | Instant client feedback and bounded writes | NFR-08 |
 | Portability | Versioned infrastructure and deployable artifacts | BR-026, NFR-09 |
 | Consistency | Canonical app version and repository-wide Git standards | BR-024, NFR-06 |
+| Data isolation | Mandatory `waqfa_` namespace and fully isolated production PocketBase | LLD-02, LLD-09 |
 | Religious integrity | Committee approval and no runtime religious-text APIs | BR-012, BR-013 |
 | RTL/accessibility | Arabic-only, WCAG target, large text and reduced motion | BR-027, BR-039, NFR-05, NFR-10 |
 | Multi-device | Revision-safe transfer and stale-write rejection | BR-029, NFR-12 |
@@ -273,7 +300,7 @@ This topology is formally recorded in `ADR-001-Development-and-Deployment-Topolo
 7. Exact continuity scoring tolerance.
 8. Location-change threshold and browser support.
 9. Audio storage, caching, and offline policy.
-10. Final live infrastructure identifiers, paths, networking, backup target, and deployment credentials.
+10. Final production LXC identifiers, paths, networking, backup target, and deployment credentials.
 
 ---
 
