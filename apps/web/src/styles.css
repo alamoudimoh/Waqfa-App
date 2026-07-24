@@ -1,0 +1,69 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: #21352f;
+  background: #f5f1e8;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at top right, rgba(139, 171, 154, 0.2), transparent 32%),
+    #f5f1e8;
+}
+
+.app-card {
+  width: min(100%, 760px);
+  padding: clamp(2rem, 6vw, 4.5rem);
+  border: 1px solid rgba(33, 53, 47, 0.12);
+  border-radius: 2rem;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 30px 80px rgba(33, 53, 47, 0.1);
+  backdrop-filter: blur(18px);
+}
+
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: #6f8f80;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  max-width: 12ch;
+  font-size: clamp(2.5rem, 8vw, 5.5rem);
+  line-height: 1.05;
+}
+
+p {
+  margin: 1.5rem 0 0;
+  max-width: 58ch;
+  color: #5a6d66;
+  font-size: 1.1rem;
+  line-height: 1.9;
+}
