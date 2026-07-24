@@ -13,3 +13,4 @@ coverage/
 !.env.development.example
 !.env.production.example
 00_Documentation/09_Reports/**/*.local.md
+graphify-out/
