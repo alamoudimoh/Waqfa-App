@@ -1,0 +1,75 @@
+name: waqfa-development
+
+services:
+  app:
+    container_name: Waqfa-App-Dev
+    image: node:22-bookworm-slim
+    working_dir: /workspace
+    command: ["bash", "-lc", "corepack enable && pnpm install --frozen-lockfile=false && pnpm --filter ./apps/web dev --host 0.0.0.0 --port 3100"]
+    environment:
+      NODE_ENV: development
+      TZ: Asia/Riyadh
+      WAQFA_POCKETBASE_URL: ${WAQFA_POCKETBASE_URL:-http://Dev-Backend:8090}
+      WAQFA_POCKETBASE_PUBLIC_URL: ${WAQFA_POCKETBASE_PUBLIC_URL:-http://localhost:8090}
+    ports:
+      - "3100:3100"
+    volumes:
+      - /opt/Dev/Waqfa-App:/workspace
+      - waqfa_node_modules:/workspace/node_modules
+      - waqfa_pnpm_store:/pnpm/store
+    networks:
+      - waqfa_dev
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3100').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  landing:
+    container_name: Waqfa-Landing-Dev
+    image: node:22-bookworm-slim
+    working_dir: /workspace
+    command: ["bash", "-lc", "corepack enable && pnpm install --frozen-lockfile=false && pnpm --filter ./apps/landing dev --host 0.0.0.0 --port 3101"]
+    environment:
+      NODE_ENV: development
+      TZ: Asia/Riyadh
+      WAQFA_POCKETBASE_URL: ${WAQFA_POCKETBASE_URL:-http://Dev-Backend:8090}
+      WAQFA_POCKETBASE_PUBLIC_URL: ${WAQFA_POCKETBASE_PUBLIC_URL:-http://localhost:8090}
+    ports:
+      - "3101:3101"
+    volumes:
+      - /opt/Dev/Waqfa-App:/workspace
+      - waqfa_node_modules:/workspace/node_modules
+      - waqfa_pnpm_store:/pnpm/store
+    networks:
+      - waqfa_dev
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3101').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+volumes:
+  waqfa_node_modules:
+    name: waqfa_dev_node_modules
+  waqfa_pnpm_store:
+    name: waqfa_dev_pnpm_store
+
+networks:
+  waqfa_dev:
+    external: true
+    name: ${WAQFA_DOCKER_NETWORK:-Network_Dev}

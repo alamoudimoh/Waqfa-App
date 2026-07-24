@@ -1,0 +1,22 @@
+{
+  "name": "waqfa",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "bootstrap": "bash tools/bootstrap/bootstrap.sh",
+    "verify": "bash tools/bootstrap/verify.sh",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "build": "pnpm -r --if-present build",
+    "lint": "pnpm -r --if-present lint",
+    "test": "pnpm -r --if-present test",
+    "dev:compose:config": "docker compose -f infrastructure/compose/compose.development.yaml config"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

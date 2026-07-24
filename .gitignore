@@ -1,0 +1,15 @@
+node_modules/
+.pnpm-store/
+.tanstack/
+.output/
+dist/
+build/
+coverage/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+!.env.development.example
+!.env.production.example
+00_Documentation/09_Reports/**/*.local.md
