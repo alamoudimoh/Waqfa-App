@@ -55,6 +55,10 @@ Waqfa must not use generic PocketBase collections and must not reuse or modify a
 | `00_Documentation/03_Development/GIT-STANDARDS.md` | Branch, commit, PR, merge, and release standards |
 | `00_Documentation/03_Development/PROJECT-STRUCTURE-STANDARD.md` | Canonical repository and `/opt/Dev/Waqfa-App` organization |
 | `00_Documentation/03_Development/DOCUMENTATION-MAINTENANCE-STANDARD.md` | Continuous documentation and definition-of-done rules |
+| `00_Documentation/03_Development/AI-OPERATING-MODEL.md` | Waqfa-specific operating model for Factory Droid, OpenCode, Claude Code, and Codex |
+| `00_Documentation/03_Development/AI-TASK-ROUTING.md` | Easy, medium, and hard task classification and tool assignment |
+| `00_Documentation/03_Development/AI-TASK-BRIEF.md` | Required task intake, approval, validation, and delivery template |
+| `AGENTS.md` | Repository-level instructions for AI coding agents |
 | `00_Documentation/04_Infrastructure/INFRASTRUCTURE.md` | Environment, networking, persistence, backup, and artifact boundaries |
 | `00_Documentation/04_Infrastructure/DOCKER-COMPOSE-STANDARD.md` | Manage-Hub Compose conventions, port registry, and production isolation |
 | `00_Documentation/05_Security/SECRETS-AND-ACCESS.md` | Secrets, credentials, access, rotation, and incident response |
